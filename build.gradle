@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'checkstyle'
+    id 'jacoco'
+}
+
+group 'hexlet.code'
+version '1.0-SNAPSHOT'
+
+application {
+    mainClass="hexlet.code.App"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+    testImplementation("org.assertj:assertj-core:3.22.0")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileJava {
+    options.release = 17
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+    }
+}
+
+checkstyle {
+    toolVersion '9.2.1'
+}
