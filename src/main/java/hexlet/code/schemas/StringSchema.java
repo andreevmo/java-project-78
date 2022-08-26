@@ -1,27 +1,19 @@
 package hexlet.code.schemas;
 
-import java.util.function.Predicate;
-
-public final class StringSchema {
-
-    private Predicate<String> valid = s -> true;
-
-    public boolean isValid(String s) {
-        return valid.test(s);
-    }
+public final class StringSchema extends BaseSchema {
 
     public StringSchema required() {
-        valid = s -> s != null && !s.trim().equals("");
+        setValid(s -> s instanceof String && !s.toString().trim().equals(""));
         return this;
     }
 
     public StringSchema minLength(int minLength) {
-        valid =  valid.and(s -> s.length() >= minLength);
+        setValid(getValid().and(s -> s.toString().length() >= minLength));
         return this;
     }
 
     public StringSchema contains(String subs) {
-        valid = valid.and(s -> s.contains(subs));
+        setValid(getValid().and(s -> s.toString().contains(subs)));
         return this;
     }
 }
