@@ -2,6 +2,7 @@ package hexlet.code;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import hexlet.code.schemas.BaseSchema;
 import hexlet.code.schemas.MapSchema;
 import hexlet.code.schemas.NumberSchema;
 import hexlet.code.schemas.StringSchema;
@@ -36,20 +37,15 @@ public class TestValidator {
         assertThat(schema.contains("Some").isValid("Hi, Max")).isFalse();
         assertThat(schema.contains("Max").isValid("Hi, Max")).isFalse();
 
-        schema.required();
-        assertThat(schema.contains("Max").isValid("Hi, Max")).isTrue();
+        Validator v1 = new Validator();
+        StringSchema schema1 = v1.string();
+        schema1.required();
+        assertThat(schema1.contains("Max").isValid("Hi, Max")).isTrue();
 
-        schema.required().minLength(8);
-        assertThat(schema.contains("Max").isValid("Hi, Max")).isFalse();
-
-        schema.required().minLength(4).contains("Some");
-        assertThat(schema.contains("Max").isValid("Hi, Max")).isFalse();
-
-        schema.required().minLength(4);
-        assertThat(schema.contains("Max").isValid("Hi, Max")).isTrue();
-
-        schema.required().minLength(4).contains("Some");
-        assertThat(schema.isValid("Hi, Max")).isFalse();
+        Validator v2 = new Validator();
+        StringSchema schema2 = v2.string();
+        schema2.required().minLength(8);
+        assertThat(schema2.contains("Max").isValid("Hi, Max")).isFalse();
     }
 
     @Test
@@ -58,30 +54,28 @@ public class TestValidator {
         NumberSchema schema = v.number();
 
         assertThat(schema.isValid(null)).isTrue();
+        assertThat(schema.positive().isValid(null)).isTrue();
 
-        schema.required();
+        Validator v1 = new Validator();
+        NumberSchema schema1 = v1.number();
 
-        assertThat(schema.isValid(null)).isFalse();
-        assertThat(schema.isValid(10)).isTrue();
-        assertThat(schema.isValid("5")).isFalse();
+        schema1.required();
+        assertThat(schema1.isValid(null)).isFalse();
+        assertThat(schema1.positive().isValid(null)).isFalse();
 
-        assertThat(schema.positive().isValid(10)).isTrue();
-        assertThat(schema.isValid(-10)).isFalse();
+        assertThat(schema1.isValid(null)).isFalse();
+        assertThat(schema1.isValid(10)).isTrue();
+        assertThat(schema1.isValid("5")).isFalse();
 
-        schema.range(5, 10);
+        assertThat(schema1.positive().isValid(10)).isTrue();
+        assertThat(schema1.isValid(-10)).isFalse();
 
-        assertThat(schema.isValid(5)).isTrue();
-        assertThat(schema.isValid(10)).isTrue();
-        assertThat(schema.isValid(4)).isFalse();
-        assertThat(schema.isValid(11)).isFalse();
+        schema1.range(5, 10);
 
-        schema.required();
-        assertThat(schema.range(5, 10).isValid(7)).isTrue();
-
-        schema.required().range(-1, 10);
-        assertThat(schema.isValid(-1)).isTrue();
-
-        assertThat(schema.required().positive().isValid(-1)).isFalse();
+        assertThat(schema1.isValid(5)).isTrue();
+        assertThat(schema1.isValid(10)).isTrue();
+        assertThat(schema1.isValid(4)).isFalse();
+        assertThat(schema1.isValid(11)).isFalse();
     }
 
     @Test
@@ -106,5 +100,80 @@ public class TestValidator {
         assertThat(schema.isValid(data)).isTrue();
         data.put("key3", "value3");
         assertThat(schema.isValid(data)).isFalse();
+
+        Validator v1 = new Validator();
+        MapSchema schema1 = v1.map();
+
+        schema1.sizeof(2);
+
+        boolean res = schema1.isValid("1");
+    }
+
+    @Test
+    void testShape() {
+        Validator v = new Validator();
+        MapSchema schema = v.map();
+
+        Map<String, BaseSchema> schemas = new HashMap<>();
+        schemas.put("name", v.string().required());
+        schemas.put("age", v.number().positive());
+        schema.shape(schemas);
+
+        Map<String, Object> human = new HashMap<>();
+        human.put("name", "Kolya");
+        human.put("age", 100);
+        assertThat(schema.isValid(human)).isTrue();
+
+        human.put("name", "Maya");
+        human.put("age", null);
+        assertThat(schema.isValid(human)).isTrue();
+
+        human.put("name", "");
+        human.put("age", null);
+        assertThat(schema.isValid(human)).isFalse();
+
+        human.put("name", "Valya");
+        human.put("age", -5);
+        assertThat(schema.isValid(human)).isFalse();
+
+        Validator v1 = new Validator();
+        MapSchema schema1 = v1.map();
+
+        Map<String, BaseSchema> schemas1 = new HashMap<>();
+        schemas1.put("name", v.string().required().minLength(4));
+        schemas1.put("age", v.number().positive().range(1, 5));
+        schema1.shape(schemas1);
+
+        human.put("name", "Max");
+        human.put("age", 5);
+        assertThat(schema1.isValid(human)).isFalse();
+
+        human.put("name", "Maxim");
+        human.put("age", 5);
+        assertThat(schema1.isValid(human)).isTrue();
+
+        human.put("name", "Maxim");
+        human.put("age", 7);
+        assertThat(schema1.isValid(human)).isFalse();
+
+        human.put("name", null);
+        human.put("age", 4);
+        assertThat(schema1.isValid(human)).isFalse();
+
+        Validator v2 = new Validator();
+        MapSchema schema2 = v2.map();
+
+        Map<String, BaseSchema> schemas2 = new HashMap<>();
+        schemas2.put("name", v.string().minLength(4));
+        schemas2.put("age", v.number().range(-10, 5));
+        schema2.shape(schemas2);
+
+        human.put("name", null);
+        human.put("age", 4);
+        assertThat(schema2.isValid(human)).isTrue();
+
+        human.put("name", "Maxim");
+        human.put("age", -3);
+        assertThat(schema2.isValid(human)).isTrue();
     }
 }
