@@ -17,4 +17,13 @@ public class BaseSchema {
     public final boolean isValid(Object value) {
         return valid.test(value);
     }
+
+    public final boolean check(Object o, Predicate<Object> predicateForCheck, Predicate<Object> schemaPredicate) {
+        if (o == null) {
+            return true;
+        } else if (schemaPredicate.test(o)) {
+            return predicateForCheck.test(o);
+        }
+        return false;
+    }
 }

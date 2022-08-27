@@ -1,41 +1,36 @@
 package hexlet.code.schemas;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public final class MapSchema extends BaseSchema {
 
+    private final Predicate<Object> schemaPredicate = value -> value instanceof Map<?, ?>;
+
     public MapSchema required() {
-        setValid(getValid().and(m -> m instanceof Map<?, ?>));
+        setValid(getValid().and(schemaPredicate));
         return this;
     }
 
     public MapSchema sizeof(int count) {
-        setValid(getValid().and(m -> check(m, m1 -> ((Map<?, ?>) m1).size() == count)));
+        Predicate<Object> sizeofPredicate = m1 -> ((Map<?, ?>) m1).size() == count;
+        setValid(getValid().and(m -> check(m, sizeofPredicate, schemaPredicate)));
         return this;
     }
 
     public MapSchema shape(Map<?, BaseSchema> schemas) {
-        Predicate<Object> p = m1 -> {
-            for (Map.Entry<?, ?> el : ((Map<?, ?>) m1).entrySet()) {
-                if (schemas.containsKey(el.getKey())) {
-                    if (!schemas.get(el.getKey()).isValid(el.getValue())) {
-                        return false;
-                    }
+        Predicate<Object> shapePredicate = m1 -> {
+            Set<?> keys = ((Map<?, ?>) m1).keySet();
+            keys.retainAll(schemas.keySet());
+            for (Object el : keys) {
+                if (!schemas.get(el).isValid(((Map<?, ?>) m1).get(el))) {
+                    return false;
                 }
             }
             return true;
         };
-        setValid(getValid().and(m -> check(m, p)));
+        setValid(getValid().and(m -> check(m, shapePredicate, schemaPredicate)));
         return this;
-    }
-
-    public boolean check(Object o, Predicate<Object> predicate) {
-        if (o == null) {
-            return true;
-        } else if (o instanceof Map<?, ?>) {
-            return predicate.test(o);
-        }
-        return false;
     }
 }

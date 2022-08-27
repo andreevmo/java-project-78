@@ -9,6 +9,7 @@ import hexlet.code.schemas.StringSchema;
 import  org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 
@@ -46,6 +47,11 @@ public class TestValidator {
         StringSchema schema2 = v2.string();
         schema2.required().minLength(8);
         assertThat(schema2.contains("Max").isValid("Hi, Max")).isFalse();
+
+        Validator v3 = new Validator();
+        StringSchema schema3 = v3.string();
+        schema.minLength(3);
+        assertThat(schema.isValid(123)).isFalse();
     }
 
     @Test
@@ -55,6 +61,7 @@ public class TestValidator {
 
         assertThat(schema.isValid(null)).isTrue();
         assertThat(schema.positive().isValid(null)).isTrue();
+        assertThat(schema.isValid("5")).isFalse();
 
         Validator v1 = new Validator();
         NumberSchema schema1 = v1.number();
@@ -101,12 +108,20 @@ public class TestValidator {
         data.put("key3", "value3");
         assertThat(schema.isValid(data)).isFalse();
 
+        Map<String, String> data1 = new LinkedHashMap<>();
+        data1.put("key1", "value1");
+        assertThat(schema.isValid(data1)).isFalse();
+        data1.put("key2", "value2");
+        assertThat(schema.isValid(data1)).isTrue();
+        data1.put("key3", "value3");
+        assertThat(schema.isValid(data1)).isFalse();
+
         Validator v1 = new Validator();
         MapSchema schema1 = v1.map();
 
         schema1.sizeof(2);
 
-        boolean res = schema1.isValid("1");
+        boolean res1 = schema1.isValid("1");
     }
 
     @Test
