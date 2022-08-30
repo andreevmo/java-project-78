@@ -2,28 +2,48 @@ package hexlet.code.schemas;
 
 import java.util.function.Predicate;
 
-public class BaseSchema {
+public class BaseSchema<T> {
 
-    private Predicate<Object> valid = s -> true;
+    private Predicate<T> baseSchemaPredicate = s -> true;
+    private Predicate<Object> schemaPredicate;
+    private boolean isCheckRequired = false;
 
-    public final Predicate<Object> getValid() {
-        return valid;
+    public BaseSchema(Predicate<Object> newSchemaPredicate) {
+        setSchemaPredicate(newSchemaPredicate);
     }
 
-    public final void setValid(Predicate<Object> newValid) {
-        this.valid = newValid;
+    public final boolean getIsCheckRequired() {
+        return isCheckRequired;
+    }
+    public final void setIsCheckRequired(boolean checkRequired) {
+        isCheckRequired = checkRequired;
+    }
+
+    public final Predicate<Object> getSchemaPredicate() {
+        return schemaPredicate;
+    }
+
+    public final void setSchemaPredicate(Predicate<Object> newSchemaPredicate) {
+        this.schemaPredicate = newSchemaPredicate;
+    }
+
+    public final Predicate<T> getBaseSchemaPredicate() {
+        return baseSchemaPredicate;
+    }
+
+    public final void setBaseSchemaPredicate(Predicate<T> newValid) {
+        this.baseSchemaPredicate = newValid;
     }
 
     public final boolean isValid(Object value) {
-        return valid.test(value);
+        if (getIsCheckRequired()) {
+            return getSchemaPredicate().test(value) && getBaseSchemaPredicate().test((T) value);
+        } else {
+            return !getSchemaPredicate().test(value) || getBaseSchemaPredicate().test((T) value);
+        }
     }
 
-    public final boolean check(Object o, Predicate<Object> predicateForCheck, Predicate<Object> schemaPredicate) {
-        if (o == null) {
-            return true;
-        } else if (schemaPredicate.test(o)) {
-            return predicateForCheck.test(o);
-        }
-        return false;
+    public final void addValidation(Predicate<T> predicate) {
+        setBaseSchemaPredicate(getBaseSchemaPredicate().and(predicate));
     }
 }

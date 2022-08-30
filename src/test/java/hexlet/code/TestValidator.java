@@ -25,7 +25,6 @@ public class TestValidator {
         schema.required();
         assertThat(schema.isValid(null)).isFalse();
         assertThat(schema.isValid("")).isFalse();
-        boolean res = schema.isValid("Hi");
         assertThat(schema.isValid("Hi")).isTrue();
 
         schema.minLength(3);
@@ -61,7 +60,7 @@ public class TestValidator {
 
         assertThat(schema.isValid(null)).isTrue();
         assertThat(schema.positive().isValid(null)).isTrue();
-        assertThat(schema.isValid("5")).isFalse();
+        assertThat(schema.isValid("5")).isTrue();
 
         Validator v1 = new Validator();
         NumberSchema schema1 = v1.number();
@@ -115,13 +114,6 @@ public class TestValidator {
         assertThat(schema.isValid(data1)).isTrue();
         data1.put("key3", "value3");
         assertThat(schema.isValid(data1)).isFalse();
-
-        Validator v1 = new Validator();
-        MapSchema schema1 = v1.map();
-
-        schema1.sizeof(2);
-
-        boolean res1 = schema1.isValid("1");
     }
 
     @Test
