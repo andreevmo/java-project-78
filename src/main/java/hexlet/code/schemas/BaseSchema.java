@@ -2,48 +2,36 @@ package hexlet.code.schemas;
 
 import java.util.function.Predicate;
 
-public class BaseSchema<T> {
+public abstract class BaseSchema<T> {
 
-    private Predicate<T> baseSchemaPredicate = s -> true;
-    private Predicate<Object> schemaPredicate;
+    private Predicate<T> allValidations = s -> true;
+    private final Predicate<Object> requiredValidation;
     private boolean isCheckRequired = false;
 
-    public BaseSchema(Predicate<Object> newSchemaPredicate) {
-        setSchemaPredicate(newSchemaPredicate);
+    protected BaseSchema(Predicate<Object> requiredSchema) {
+        requiredValidation = requiredSchema;
     }
-
-    public final boolean getIsCheckRequired() {
-        return isCheckRequired;
-    }
-    public final void setIsCheckRequired(boolean checkRequired) {
+    protected final void setIsCheckRequired(boolean checkRequired) {
         isCheckRequired = checkRequired;
     }
 
-    public final Predicate<Object> getSchemaPredicate() {
-        return schemaPredicate;
+    protected final Predicate<Object> getRequiredValidation() {
+        return requiredValidation;
     }
 
-    public final void setSchemaPredicate(Predicate<Object> newSchemaPredicate) {
-        this.schemaPredicate = newSchemaPredicate;
-    }
-
-    public final Predicate<T> getBaseSchemaPredicate() {
-        return baseSchemaPredicate;
-    }
-
-    public final void setBaseSchemaPredicate(Predicate<T> newValid) {
-        this.baseSchemaPredicate = newValid;
+    protected final Predicate<T> getAllValidations() {
+        return allValidations;
     }
 
     public final boolean isValid(Object value) {
-        if (getIsCheckRequired()) {
-            return getSchemaPredicate().test(value) && getBaseSchemaPredicate().test((T) value);
+        if (isCheckRequired) {
+            return getRequiredValidation().test(value) && getAllValidations().test((T) value);
         } else {
-            return !getSchemaPredicate().test(value) || getBaseSchemaPredicate().test((T) value);
+            return !getRequiredValidation().test(value) || getAllValidations().test((T) value);
         }
     }
 
-    public final void addValidation(Predicate<T> predicate) {
-        setBaseSchemaPredicate(getBaseSchemaPredicate().and(predicate));
+    protected final void addValidation(Predicate<T> predicate) {
+        allValidations = getAllValidations().and(predicate);
     }
 }
